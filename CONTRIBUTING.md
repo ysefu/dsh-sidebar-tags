@@ -5,8 +5,9 @@ Thanks for taking a look. This is a small plugin; the rules are short.
 ## Before a PR
 
 ```bash
-node scripts/build.mjs      # bundle + manifest guard
-node scripts/test.mjs       # unit suite, one process
+node scripts/build.mjs                 # bundle + manifest guard
+node scripts/test.mjs                  # unit suite, one process
+node --test "tests/**/*.test.mjs"      # the same suite, Node's own runner
 ```
 
 Both must pass. If you changed anything under `lib/client.js`, also run it in a

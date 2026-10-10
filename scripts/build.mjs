@@ -22,7 +22,7 @@
  * and print the same report.
  */
 
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -117,6 +117,27 @@ check('patch row mounts this package', insertNames.length === 1 && insertNames[0
 
 /* 7 ─ test hook ------------------------------------------------------------ */
 check('test hook is guarded', /window\.__DSH_SIDEBAR_TAGS_TEST__ === true/.test(client))
+
+/* 8 ─ every other script parses -------------------------------------------
+ * A JSDoc comment closed one character too early in a helper script is a
+ * five-second fix and a fifteen-minute CI round trip when it is only caught on
+ * the runner, so every `.mjs` in the repository is parsed here.
+ */
+const SCRIPT_GLOBS = ['scripts', 'tests', 'tools']
+for (const directory of SCRIPT_GLOBS) {
+	let entries = []
+	try {
+		entries = readdirSync(join(root, directory))
+	} catch {
+		continue
+	}
+	for (const entry of entries) {
+		if (!entry.endsWith('.mjs')) continue
+		const relative = directory + '/' + entry
+		const parsed = spawnSync(process.execPath, ['--check', join(root, relative)], { stdio: 'ignore' })
+		check('parses: ' + relative, parsed.status === 0, 'node --check rejected it')
+	}
+}
 
 /* report ------------------------------------------------------------------- */
 const verbose = process.argv.includes('--verbose')

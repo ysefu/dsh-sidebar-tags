@@ -85,9 +85,9 @@ dsh plugin --profile <profile> remove dsh-sidebar-tags
 下面这些都能在检出目录里用普通 Node 跑（不需要打包器、不需要联网）：
 
 ```bash
-node scripts/build.mjs      # bundle 与 manifest 守卫（24 条不变式）
-node scripts/test.mjs       # 34 个单测，单进程运行
-node --test tests/          # 同样的测试，走 Node 自带 runner
+node scripts/build.mjs                # bundle 与 manifest 守卫（34 条不变式）
+node scripts/test.mjs                 # 34 个单测，单进程运行
+node --test "tests/**/*.test.mjs"     # 同样的测试，走 Node 自带 runner
 ```
 
 `scripts/verify-browser.mjs <gui-url>` 会用无头 Chromium 通过 DevTools 协议

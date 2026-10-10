@@ -51,7 +51,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node scripts/test.mjs",
-    "test:node": "node --test tests/",
+    "test:node": "node --test \"tests/**/*.test.mjs\"",
     "verify:browser": "node scripts/verify-browser.mjs",
     "check": "node scripts/build.mjs --verbose && node scripts/test.mjs"
   },

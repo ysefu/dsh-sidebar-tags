@@ -30,7 +30,11 @@ jobs:
         run: node scripts/build.mjs --verbose
 
       - name: unit tests (Node's own runner)
-        run: node --test tests/
+        # A glob, not the bare `tests/` directory: Node 22 and 24 treat a
+        # directory argument as a module path on a non-TTY runner and fail with
+        # "Cannot find module .../tests". The harness file is `_harness.mjs`
+        # precisely so this glob cannot pick it up as a test.
+        run: node --test "tests/**/*.test.mjs"
 
       - name: unit tests (single process)
         run: node scripts/test.mjs

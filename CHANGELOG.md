@@ -32,8 +32,18 @@ First release. A pure client-side plugin for the DeepSeek Harness Web GUI.
   at call time so a language switch needs no reload.
 - **Tooling**: `scripts/build.mjs` (bundle and manifest guard),
   `scripts/test.mjs` (in-process test entry), `scripts/verify-browser.mjs`
-  (headless-Chromium smoke check), `lab/index.html` plus `tools/serve.mjs`
-  (a stand-in shell for inspecting the UI without installing anything).
+  (headless-Chromium smoke check), `scripts/publish-github.mjs` (create and
+  push the repository through the REST API on a machine without git),
+  `lab/index.html` plus `tools/serve.mjs` (a stand-in shell for inspecting the
+  UI without installing anything).
+
+### Fixed
+
+- CI runs the unit suite with a glob (`node --test "tests/**/*.test.mjs"`). A
+  bare `tests/` directory argument is read as a module path by Node 22 and 24 on
+  a non-TTY runner, so the workflow failed in CI while passing locally.
+- The bundle guard now parses every helper script as well; a JSDoc comment
+  closed one character early in `scripts/test.mjs` had slipped through.
 
 ### Notes
 

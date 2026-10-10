@@ -2,15 +2,18 @@
 /**
  * In-process test entry for dsh-sidebar-tags.
  *
- * `node --test tests/` runs every test file in its own child process, which is
- * the best isolation but is unavailable in confined environments (a piped-stdio
- * spawn is refused there). This entry imports the same test files into one
+ * Node's own runner gives every test file its own child process, which is the
+ * better isolation but is unavailable in confined environments (a piped-stdio
+ * spawn is refused there) — and that refusal is also why the CI failure this
+ * file was written around could hide locally: the runner died before it could
+ * report the real error. This entry imports the same test files into one
  * process instead, so the suite runs anywhere Node runs:
  *
  *     npm test            # this file
  *
- * Node's own runner still works and is preferred when it is available:
- * `node --test tests/*.test.mjs`.
+ * Node's own runner is preferred where it works, and CI uses it as well:
+ * `node --test "tests/<glob>.test.mjs"` (a glob — a bare directory argument is
+ * read as a module path on a non-TTY runner).
  */
 
 import { readdirSync } from 'node:fs'

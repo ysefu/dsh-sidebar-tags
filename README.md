@@ -97,9 +97,9 @@ Everything below is runnable from a checkout with plain Node (no bundler, no
 network):
 
 ```bash
-node scripts/build.mjs      # bundle + manifest guard (24 invariants)
-node scripts/test.mjs       # 34 unit tests, in one process
-node --test tests/          # the same tests through Node's own runner
+node scripts/build.mjs                 # bundle + manifest guard (34 invariants)
+node scripts/test.mjs                  # 34 unit tests, in one process
+node --test "tests/**/*.test.mjs"      # the same tests through Node's own runner
 ```
 
 `scripts/verify-browser.mjs <gui-url>` drives a headless Chromium over the
