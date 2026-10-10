@@ -1,0 +1,58 @@
+name: Bug report
+description: Something in the plugin does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The four fields below are what makes a sidebar
+        plugin issue actionable — without them the first reply is always a
+        request for them.
+  - type: input
+    id: harness-version
+    attributes:
+      label: Harness version
+      description: 'Run `dsh --version`, or read it in Settings → Account.'
+      placeholder: '0.2.0-rc.2'
+    validations:
+      required: true
+  - type: textarea
+    id: dump-config
+    attributes:
+      label: Profile config
+      description: 'Output of `dsh --profile <profile> --dump-config` (trim anything private).'
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps, expected, actual
+      placeholder: |
+        1. Hover a session row and click the tag button
+        2. Pick "Important"
+        Expected: the row shows a red dot
+        Actual: nothing happens
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console output
+      description: 'Anything logged while reproducing, especially errors mentioning `dsh-sidebar-tags`.'
+      render: text
+    validations:
+      required: false
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where does it break?
+      options:
+        - The sidebar panel row is missing entirely
+        - The panel opens but is empty or broken
+        - The row dot / hover card / row picker
+        - Tags are lost after a reload
+        - Install or boot fails
+        - Something else
+    validations:
+      required: true
