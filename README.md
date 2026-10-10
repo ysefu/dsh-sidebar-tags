@@ -1,5 +1,8 @@
 # dsh-sidebar-tags
 
+[![ci](https://github.com/ysefu/dsh-sidebar-tags/actions/workflows/ci.yml/badge.svg)](https://github.com/ysefu/dsh-sidebar-tags/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Colored session tags for the DeepSeek Harness sidebar.** Tag any session from
 its own row, see the tag at a glance, and filter your whole history by tag from
 a dedicated sidebar panel.
