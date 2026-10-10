@@ -1,0 +1,13 @@
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs and local state
+*.log
+npm-debug.log*
+node_modules/
+
+# Anything a local verification run produced
+.dsh-*/
+*.tgz

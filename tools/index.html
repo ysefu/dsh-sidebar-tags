@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>dsh-sidebar-tags · 本地验证入口</title>
+<style>
+	body{margin:0;padding:32px;background:#141417;color:#e8e8ea;font:14px/1.7 system-ui,"Segoe UI",sans-serif}
+	a{color:#7f9bff}
+	code{font-family:ui-monospace,Consolas,monospace;background:#232327;padding:1px 5px;border-radius:4px}
+	ul{padding-left:20px}
+</style>
+</head>
+<body>
+	<h1>dsh-sidebar-tags · 本地验证入口</h1>
+	<p>这个页面由 <code>tools/serve.mjs</code> 提供，只用于本地验证。</p>
+	<ul>
+		<li><a href="../lab/">浏览器验证台（lab/）</a> —— 用同一份 <code>lib/client.js</code> 渲染真实 UI，无需安装插件</li>
+		<li><a href="../lib/client.js">插件 bundle（lib/client.js）</a> —— 宿主实际下发的那份文件</li>
+		<li><a href="../README.md">README</a></li>
+	</ul>
+	<p>验证台需要联网加载 React UMD；插件本身不依赖网络。</p>
+</body>
+</html>

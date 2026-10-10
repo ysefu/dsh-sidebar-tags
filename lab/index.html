@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>dsh-sidebar-tags · 浏览器验证台</title>
+<style>
+	:root{color-scheme:dark;--dsw-alias-label-primary:#e8e8ea;--dsw-alias-label-secondary:#a9a9b2;--dsw-alias-label-tertiary:#7b7b85;--dsw-alias-label-primary-inverted:#17171a;--dsw-alias-bg-layer-2:#232327;--dsw-alias-border-l3:#3a3a41;--dsw-alias-interactive-bg-hover:#2c2c31;--dsw-alias-button-elevated-fill:#26262b;--dsw-alias-state-business-primary:#4d6bfe;--dsw-radius-sm:4px;--dsw-radius-md:8px;--ds-font-family-code:ui-monospace,Consolas,monospace}
+	*{box-sizing:border-box}
+	body{margin:0;display:flex;height:100vh;overflow:hidden;background:#141417;color:var(--dsw-alias-label-primary);font:14px/1.5 system-ui,"Segoe UI",sans-serif}
+	#sidebar{width:280px;flex:none;display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#1b1b1f;border-right:1px solid #2b2b31}
+	.brand{height:40px;display:flex;align-items:center;font-weight:600;letter-spacing:.02em}
+	.newSession{height:34px;border:1px solid #35353c;border-radius:8px;background:#232328;color:inherit;cursor:pointer}
+	.panelList{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+	.panelRow{display:flex;align-items:center;gap:8px;min-height:34px;padding:6px 8px;border:0;border-radius:8px;background:0 0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+	.panelRow:hover{background:var(--dsw-alias-interactive-bg-hover)}
+	.panelActive{background:var(--dsw-alias-interactive-bg-hover)}
+	.panelGlyph{display:inline-flex}
+	.sectionLabel{margin:12px 0 2px;font-size:11px;color:var(--dsw-alias-label-tertiary)}
+	.rows{display:flex;flex-direction:column;gap:2px}
+	.sessionRow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;position:relative}
+	.sessionRow:hover{background:var(--dsw-alias-interactive-bg-hover)}
+	.sessionRow.selected{box-shadow:inset 0 0 0 1px #4d6bfe66}
+	.rowSlot{display:inline-flex;flex:none;align-items:center;width:12px}
+	.rowTitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+	.rowTime{font-size:11px;color:var(--dsw-alias-label-tertiary)}
+	.rowActions{display:none;align-items:center;gap:4px;flex:none}
+	.sessionRow:hover .rowActions{display:flex}
+	.ellipsis{width:24px;height:24px;border:0;border-radius:4px;background:0 0;color:var(--dsw-alias-label-secondary);cursor:pointer}
+	.ellipsis:hover{background:var(--dsw-alias-interactive-bg-hover)}
+	#menu{position:fixed;z-index:60;min-width:220px;padding:6px;background:#232327;border:1px solid #3a3a41;border-radius:10px;box-shadow:0 12px 32px #0007}
+	#menu .ds-menu-item{display:block;width:100%;padding:6px 8px;border:0;border-radius:6px;background:0 0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+	#menu .ds-menu-item:hover{background:var(--dsw-alias-interactive-bg-hover)}
+	#hovercard{position:fixed;z-index:60;max-width:300px;padding:10px 12px;background:#232327;border:1px solid #3a3a41;border-radius:10px;box-shadow:0 12px 32px #0007;color:var(--dsw-alias-label-secondary);font-size:12px}
+	#hovercard .hc-title{color:var(--dsw-alias-label-primary);font-size:13px;margin-bottom:2px}
+	#hovercard .hc-time{color:var(--dsw-alias-label-tertiary);font-size:11px}
+	#center{flex:1;min-width:0;position:relative;overflow:hidden}
+	#conversation{padding:24px 28px;color:var(--dsw-alias-label-tertiary)}
+	#lab{position:absolute;inset:0;background:#141417}
+	#tools{position:fixed;right:12px;bottom:12px;z-index:70;display:flex;gap:6px;padding:8px;background:#1e1e23;border:1px solid #33333a;border-radius:10px}
+	#tools button{padding:6px 10px;border:1px solid #3a3a41;border-radius:6px;background:#26262b;color:inherit;font:inherit;font-size:12px;cursor:pointer}
+	#tools button:hover{background:var(--dsw-alias-interactive-bg-hover)}
+	#log{position:fixed;left:12px;bottom:12px;z-index:70;max-width:520px;max-height:180px;overflow:auto;padding:8px 10px;background:#1e1e23;border:1px solid #33333a;border-radius:10px;font:11px/1.5 var(--ds-font-family-code);color:var(--dsw-alias-label-secondary);white-space:pre-wrap}
+</style>
+</head>
+<body>
+	<aside id="sidebar">
+		<div class="brand">DeepSeek Harness · 验证台</div>
+		<button class="newSession">+ 新会话</button>
+		<div class="panelList" id="panelList"></div>
+		<div class="sectionLabel">会话（悬停可看到行内按钮）</div>
+		<div class="rows" id="rows"></div>
+	</aside>
+	<main id="center">
+		<div id="conversation">
+			<p>这里是主区域。点侧栏「会话标签」行，就会把插件注册的面板页挂到这里 —— 这正是宿主 <code>main</code> 槽位的行为。</p>
+		</div>
+		<div id="lab" hidden></div>
+	</main>
+	<div id="log">验证台启动中…</div>
+	<div id="tools">
+		<button id="btnReload">重载插件 bundle</button>
+		<button id="btnSeed">写几条演示标签</button>
+		<button id="btnClear">清空 localStorage</button>
+	</div>
+
+<script>
+/*
+ * A stand-in for the DeepSeek Harness web client.
+ *
+ * It installs the same `window.__ModuleLoader__` queue the real shell installs,
+ * a React built from the platform's UMD build (the same React every Harness
+ * shell exposes to plugins), a fake Cordis context whose slot registry records
+ * registrations, and enough of a sidebar to render them. Nothing here ships
+ * with the plugin; it exists so the bundle can be seen working without
+ * installing anything.
+ */
+const log = (message) => {
+	const node = document.getElementById('log')
+	node.textContent = (node.textContent === '验证台启动中…' ? '' : node.textContent + '\n') + message
+}
+
+/* ── the loader facade the shell injects into <head> ─────────────────────── */
+const pending = new Map()
+window.__ModuleLoader__ = {
+	mode: 'queue',
+	load(registration) {
+		pending.set(registration.id, registration)
+	},
+	create() {
+		throw new Error('lab: create() is not used by this harness')
+	}
+}
+
+/* ── fake language + storage are simply the browser's own ────────────────── */
+
+/* ── a very small fake Cordis context ────────────────────────────────────── */
+const store = (initial) => {
+	let value = initial
+	const listeners = new Set()
+	return {
+		getSnapshot: () => value,
+		subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener) },
+		set(next) { value = next; for (const listener of [...listeners]) listener() }
+	}
+}
+
+const now = Date.now()
+const sessionList = store({
+	ids: ['s1', 's2', 's3', 's4'],
+	byId: {
+		s1: { id: 's1', title: '把侧边栏做成可检索的（重要）', updatedAt: now - 60_000 },
+		s2: { id: 's2', title: 'STM32 环境监测与数据记录系统', updatedAt: now - 3_600_000 },
+		s3: { id: 's3', title: '研究 dsh 插件市场的收录规则', updatedAt: now - 86_400_000 },
+		s4: { id: 's4', title: '', updatedAt: now - 120_000, blank: true }
+	}
+})
+const sessionStatus = store(new Map([['s2', { running: true }]]))
+const workspaces = store({ items: [], archivedSessionIds: [], pinnedSessionIds: [] })
+
+const slotEntries = []
+let slotEpoch = 0
+const declarations = new Map()
+
+const context = {
+	get(name) {
+		return {
+			sessions: { list: sessionList },
+			uiSession: { sessionStatus },
+			workspaces: { list: workspaces },
+			uiWorkspace: { openSession: (id) => log('openSession(' + id + ') → 宿主会切到该会话') },
+			locale: { register: () => () => {}, bind: () => (key) => key }
+		}[name]
+	},
+	effect(callback) { const dispose = callback(); return typeof dispose === 'function' ? dispose : () => {} },
+	slots: {
+		inject(seat, callback) {
+			if (declarations.has(seat)) callback()
+			else {
+				if (!declarations.has(seat)) declarations.set(seat, [])
+				declarations.get(seat).push(callback)
+			}
+			return () => {}
+		},
+		register(options, component) {
+			const entry = { options, component, epoch: ++slotEpoch }
+			slotEntries.push(entry)
+			renderRegistration(entry)
+			return () => {
+				const index = slotEntries.indexOf(entry)
+				if (index >= 0) slotEntries.splice(index, 1)
+				if (entry.container) entry.container.remove()
+			}
+		},
+		entriesOfSlot(seat) { return slotEntries.filter((entry) => entry.options.name === seat) },
+		subscribe(seat, listener) { listenersForSeat(seat).add(listener); return () => listenersForSeat(seat).delete(listener) }
+	}
+}
+const seatListeners = new Map()
+const listenersForSeat = (seat) => {
+	if (!seatListeners.has(seat)) seatListeners.set(seat, new Set())
+	return seatListeners.get(seat)
+}
+
+/* ── render one registration into the fake shell ─────────────────────────── */
+const panelList = document.getElementById('panelList')
+const rowsHost = document.getElementById('rows')
+const lab = document.getElementById('lab')
+const conversation = document.getElementById('conversation')
+let activePanelId = null
+
+function face(entry) {
+	// The shell composes inject-face + runtime share into the component props.
+	const injected = typeof entry.options.inject === 'function' ? entry.options.inject() : {}
+	return { ...injected, renderSlot: () => null, usePanelInfo: (selector) => selector({ activePanelId }) }
+}
+
+function mount(container, entry, props) {
+	// React 18 keeps one root per container, and mounting a different component
+	// into the same container later needs a fresh root, so none is cached here.
+	const root = ReactDOM.createRoot(container)
+	root.render(React.createElement(entry.component, props))
+	return root
+}
+
+/** Roots created for one row rebuild; disposed before the next rebuild. */
+let rowRoots = []
+function mountRow(container, entry, props) {
+	rowRoots.push(mount(container, entry, props))
+}
+
+function renderRegistration(entry) {
+	const seat = entry.options.name
+	if (seat === 'sidebar.panellist') {
+		const row = document.createElement('button')
+		row.className = 'panelRow'
+		row.type = 'button'
+		row.dataset.panelId = entry.options.id
+		const glyph = document.createElement('span')
+		glyph.className = 'panelGlyph'
+		const label = document.createElement('span')
+		const resolve = () => (typeof entry.options.label === 'function' ? entry.options.label() : entry.options.label)
+		label.textContent = resolve()
+		row.append(glyph, label)
+		row.addEventListener('click', () => selectPanel(entry.options.id))
+		panelList.append(row)
+		mount(glyph, entry, { size: 16, active: false })
+		entry.labelNode = label
+		return
+	}
+	if (seat === 'main') {
+		entry.container = document.createElement('div')
+		entry.container.style.height = '100%'
+		lab.append(entry.container)
+	}
+}
+
+/* Session rows, rebuilt whenever a registration lands, so the row slots mount. */
+function renderRows() {
+	for (const root of rowRoots.splice(0)) root.unmount()
+	const snapshot = sessionList.getSnapshot()
+	rowsHost.textContent = ''
+	for (const id of snapshot.ids) {
+		const session = snapshot.byId[id]
+		if (!session || session.blank === true) continue
+		const row = document.createElement('div')
+		row.className = 'sessionRow'
+		row.dataset.sessionId = id
+		const slot = document.createElement('span')
+		slot.className = 'rowSlot'
+		slot.dataset.row = 'slot'
+		const title = document.createElement('span')
+		title.className = 'rowTitle'
+		title.textContent = session.title || '未命名'
+		const time = document.createElement('span')
+		time.className = 'rowTime'
+		time.textContent = '刚刚'
+		const actions = document.createElement('span')
+		actions.className = 'rowActions'
+		const ellipsis = document.createElement('button')
+		ellipsis.className = 'ellipsis'
+		ellipsis.type = 'button'
+		ellipsis.textContent = '⋯'
+		ellipsis.addEventListener('click', (event) => { event.stopPropagation(); openMenu(id, session.title, ellipsis) })
+		actions.append(ellipsis)
+		row.append(slot, title, time, actions)
+		row.addEventListener('mouseenter', () => openHover(id, session.title, row))
+		row.addEventListener('mouseleave', closeHover)
+		rowsHost.append(row)
+		mountRowSlots(sessionList.getSnapshot().byId[id].title, slot, actions, id)
+	}
+}
+
+/** Mount every row-scoped registration into this row's own slots. */
+function mountRowSlots(displayTitle, slot, actions, sessionId) {
+	for (const entry of slotEntries) {
+		const seat = entry.options.name
+		const props = { ...face(entry), sessionId, displayTitle }
+		if (seat === 'sidebar.session.row.leading') mountRow(slot, entry, props)
+		if (seat === 'sidebar.workspaces.session.row.action') mountRow(actions, entry, props)
+	}
+}
+
+/* The "⋯" menu renders this seat's entries, exactly like the real row menu. */
+let menuNode = null
+function openMenu(sessionId, displayTitle, anchor) {
+	closeMenu()
+	menuNode = document.createElement('div')
+	menuNode.id = 'menu'
+	let open = true
+	const setOpen = (next) => { open = next; if (!open) closeMenu() }
+	for (const entry of slotEntries) {
+		if (entry.options.name !== 'sidebar.workspaces.session.menu.item') continue
+		const host = document.createElement('div')
+		menuNode.append(host)
+		const props = { ...face(entry), sessionId, displayTitle, useMenuOpenState: () => [open, setOpen] }
+		mount(host, entry, props)
+	}
+	// The built-in actions the real menu also shows, for context.
+	for (const label of ['重命名', '分叉', '归档']) {
+		const button = document.createElement('button')
+		button.className = 'ds-menu-item'
+		button.textContent = label
+		button.disabled = true
+		button.style.opacity = '.45'
+		menuNode.append(button)
+	}
+	const rect = anchor.getBoundingClientRect()
+	menuNode.style.left = Math.max(8, rect.right - 220) + 'px'
+	menuNode.style.top = (rect.bottom + 6) + 'px'
+	document.body.append(menuNode)
+	document.addEventListener('pointerdown', outsideMenu, true)
+}
+function outsideMenu(event) {
+	if (menuNode && !menuNode.contains(event.target)) closeMenu()
+}
+function closeMenu() {
+	document.removeEventListener('pointerdown', outsideMenu, true)
+	if (menuNode) menuNode.remove()
+	menuNode = null
+}
+
+/* Hover card: the shell renders this seat inside it. */
+let hoverNode = null
+function openHover(sessionId, displayTitle, row) {
+	closeHover()
+	const withContent = slotEntries.some((entry) => entry.options.name === 'sidebar.session.row.hover')
+	hoverNode = document.createElement('div')
+	hoverNode.id = 'hovercard'
+	const title = document.createElement('div')
+	title.className = 'hc-title'
+	title.textContent = displayTitle || '未命名'
+	const time = document.createElement('div')
+	time.className = 'hc-time'
+	time.textContent = '刚刚更新'
+	hoverNode.append(title, time)
+	if (withContent) {
+		const host = document.createElement('div')
+		hoverNode.append(host)
+		for (const entry of slotEntries) {
+			if (entry.options.name !== 'sidebar.session.row.hover') continue
+			mount(host, entry, { ...face(entry), sessionId, displayTitle })
+		}
+	}
+	const rect = row.getBoundingClientRect()
+	hoverNode.style.left = (rect.right + 12) + 'px'
+	hoverNode.style.top = rect.top + 'px'
+	document.body.append(hoverNode)
+}
+function closeHover() {
+	if (hoverNode) hoverNode.remove()
+	hoverNode = null
+}
+
+/** Selecting a panel row mounts the keyed `main` occupant, like the layout does. */
+function selectPanel(id) {
+	activePanelId = id
+	for (const row of panelList.querySelectorAll('.panelRow')) row.classList.toggle('panelActive', row.dataset.panelId === id)
+	conversation.hidden = true
+	lab.hidden = false
+	lab.textContent = ''
+	const entry = slotEntries.find((candidate) => candidate.options.name === 'main' && candidate.options.key === id)
+	if (entry === undefined) {
+		lab.textContent = '（这个面板没有注册 main 槽位内容）'
+		log('selectPanel(' + id + ') → 没有找到 key=' + id + ' 的 main 注册')
+		return
+	}
+	const host = document.createElement('div')
+	host.style.height = '100%'
+	lab.append(host)
+	mount(host, entry, face(entry))
+	log('selectPanel(' + id + ') → 已挂载插件面板')
+}
+
+/* ── boot: install React from the same source the shell uses, then load ──── */
+function boot() {
+	window.__ModuleLoader__.load = (registration) => pending.set(registration.id, registration)
+
+	const plugin = pending.get('dsh-sidebar-tags')
+	if (!plugin) {
+		log('找不到 bundle：请先运行 node scripts/build.mjs 确认 lib/client.js 存在。')
+		return
+	}
+	const exports = plugin.factory((id) => {
+		if (id === 'react') return window.React
+		throw new Error('lab: unexpected require ' + id)
+	})
+	log('bundle 已加载：name=' + exports.name + ' inject=' + JSON.stringify(exports.inject))
+	exports.apply(context)
+
+	// Declare the seats this fake shell owns, in the order the real shell does.
+	for (const seat of ['sidebar', 'sidebar.panellist', 'main', 'sidebar.workspaces', 'shell.overlay',
+		'sidebar.session.row.leading', 'sidebar.session.row.hover',
+		'sidebar.workspaces.session.menu.item', 'sidebar.workspaces.session.row.action']) {
+		const queue = declarations.get(seat)
+		if (queue) for (const callback of queue.splice(0)) callback()
+	}
+	log('已注册槽位：' + slotEntries.map((entry) => entry.options.name + (entry.options.id ? '#' + entry.options.id : '')).join(', '))
+	renderRows()
+	const tagRow = panelList.querySelector('.panelRow')
+	if (tagRow) tagRow.dataset.panelId = 'sidebar-tags'
+	selectPanel('sidebar-tags')
+}
+
+const reactScript = document.createElement('script')
+reactScript.src = 'https://unpkg.com/react@18/umd/react.development.js'
+reactScript.crossOrigin = 'anonymous'
+reactScript.onload = () => {
+	const domScript = document.createElement('script')
+	domScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.development.js'
+	domScript.crossOrigin = 'anonymous'
+	domScript.onload = loadBundleScript
+	domScript.onerror = () => log('ReactDOM 下载失败：离线环境下验证台不可用（插件本身不依赖网络）。')
+	document.head.append(domScript)
+}
+reactScript.onerror = () => log('React 下载失败：离线环境下验证台不可用（插件本身不依赖网络）。')
+document.head.append(reactScript)
+
+function loadBundleScript() {
+	const script = document.createElement('script')
+	script.src = '../lib/client.js'
+	script.onload = boot
+	script.onerror = () => log('加载 ../lib/client.js 失败：请用仓库根目录起一个静态服务器（见 README）。')
+	document.head.append(script)
+}
+
+document.getElementById('btnReload').addEventListener('click', () => window.location.reload())
+document.getElementById('btnSeed').addEventListener('click', () => {
+	// Walk the rendered chips instead of touching storage directly, so this also
+	// proves the panel's own actions work end to end.
+	const chips = [...document.querySelectorAll('.dst-root .dst-mini')]
+	if (chips.length === 0) { log('还没有打开面板，先点侧栏「会话标签」'); return }
+	const list = [...document.querySelectorAll('.dst-root .dst-item')]
+	let clicked = 0
+	list.forEach((item, index) => {
+		const buttons = [...item.querySelectorAll('.dst-mini')]
+		const pick = buttons[(index + 1) % buttons.length]
+		if (pick) { pick.click(); clicked += 1 }
+	})
+	log('已通过面板按钮写入 ' + clicked + ' 条标签，观察行首标记与面板列表')
+	renderRows()
+})
+document.getElementById('btnClear').addEventListener('click', () => {
+	window.localStorage.removeItem('dsh-sidebar-tags.db.v1')
+	log('已清空 dsh-sidebar-tags.db.v1，刷新后回到内置标签')
+})
+</script>
+</body>
+</html>

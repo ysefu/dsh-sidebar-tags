@@ -1,0 +1,12 @@
+# npm ignore list — belt and braces next to `files` in package.json.
+# Everything a user needs is lib/, cordis.patch.yml and the docs; the rest of
+# the repository is for contributors and stays out of the tarball.
+
+.github/
+tests/
+lab/
+tools/
+scripts/
+CONTRIBUTING.md
+*.tgz
+.dsh-sandbox/

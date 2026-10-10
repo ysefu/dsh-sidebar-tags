@@ -1,0 +1,88 @@
+{
+  "name": "dsh-sidebar-tags",
+  "version": "1.0.0",
+  "description": "Colored session tags for the DeepSeek Harness sidebar: tag any session from its row, see the tag at a glance, and filter the whole history by tag from a dedicated sidebar panel.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "sidebar",
+    "session",
+    "tags",
+    "organize",
+    "web-ui"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "author": "ysefu",
+  "homepage": "https://github.com/ysefu/dsh-sidebar-tags#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ysefu/dsh-sidebar-tags.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ysefu/dsh-sidebar-tags/issues"
+  },
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "assets",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/test.mjs",
+    "test:node": "node --test tests/",
+    "verify:browser": "node scripts/verify-browser.mjs",
+    "check": "node scripts/build.mjs --verbose && node scripts/test.mjs"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.1"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    },
+    "compatibility": {
+      "dsh": ">=0.2.0-rc.1",
+      "dshReleases": {
+        "0.2.0-rc.1": "compatible",
+        "0.2.0-rc.2": "compatible"
+      }
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,56 @@
+name: ci
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: guard + unit tests (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.x', '24.x']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # The plugin has no runtime or build dependencies, so there is nothing to
+      # install: the guard and the unit suite run on a bare Node.
+      - name: bundle and manifest guard
+        run: node scripts/build.mjs --verbose
+
+      - name: unit tests (Node's own runner)
+        run: node --test tests/
+
+      - name: unit tests (single process)
+        run: node scripts/test.mjs
+
+  browser:
+    name: browser smoke check
+    runs-on: ubuntu-latest
+    needs: check
+    # This job needs a real Harness web instance to talk to. It is opt-in via a
+    # repository variable so forks and PRs from forks do not fail on it; see
+    # CONTRIBUTING.md for how to run it locally against your own instance.
+    if: vars.DSH_SMOKE_URL != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+      - name: install chromium
+        run: sudo apt-get update && sudo apt-get install -y chromium-browser
+      - name: browser smoke check
+        env:
+          CHROME_PATH: /usr/bin/chromium-browser
+        run: node scripts/verify-browser.mjs "${{ vars.DSH_SMOKE_URL }}"

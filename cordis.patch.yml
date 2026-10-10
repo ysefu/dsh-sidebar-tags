@@ -1,0 +1,22 @@
+# ============================================================================
+# dsh-sidebar-tags — bundle patch layer
+# ============================================================================
+# DSH composes a profile as an ordered stack of bundle patch layers: every
+# package listed in the profile's `dsh.profile.bundles` contributes the patch
+# file named by its own `dsh.bundle.patch`, applied in list order, and the
+# user's own cordis.patch.yml is applied after all of them.
+#
+# This file is the plugin's mount declaration: one loader row. The host half is
+# an inert Cordis plugin (the plugin is a pure client-side UI contributor), and
+# the browser half is served from `lib/client.js` because package.json declares
+# `dsh.client.platform = "web"`.
+#
+# Install (no manual profile editing needed):
+#   dsh plugin --profile <name> add dsh-sidebar-tags
+# or from a checkout:
+#   dsh plugin --profile <name> add link:<absolute path to this directory>
+# ============================================================================
+
+- insert:
+    - id: sidebar-tags
+      name: dsh-sidebar-tags
